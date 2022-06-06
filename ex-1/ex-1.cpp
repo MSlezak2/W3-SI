@@ -1,6 +1,11 @@
 #include <iostream>
 
-int main() {
-	std::cout << "Hello World!" << std::endl;
+int main(int argc, char* argv[]) {
+
+	for (int i = 1; i < argc - 1; i++)
+	{
+		std::cout << "Hello, " << argv[i] << "!" << std::endl;
+	}
+
 	return 0;
 }
