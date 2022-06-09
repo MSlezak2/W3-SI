@@ -20,9 +20,9 @@ int main() {
 	std::vector<char> operators;
 
 	group(users_input, numbers_pattern, numbers);
-
 	group(users_input, operators_pattern, operators);
 
+	// display extracted groups:
 	for (int i = 0; i < numbers.size(); i++)
 	{
 		std::cout << numbers[i] << " ";
