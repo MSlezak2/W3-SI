@@ -3,29 +3,32 @@
 #include <regex>
 #include <vector>
 #include <cstdlib>
+#include <math.h>
 
 template<class T>
 void group(std::string input_string, std::regex pattern, std::vector<T>& container);
-void addition_and_subtraction(std::vector<int>& numbers, std::vector<char>& operators);
-void multiplication_and_division(std::vector<int>& numbers, std::vector<char>& operators);
+void addition_and_subtraction(std::vector<double>& numbers, std::vector<char>& operators);
+void multiplication_and_division(std::vector<double>& numbers, std::vector<char>& operators);
+void exponentiation_and_roots(std::vector<double>& numbers, std::vector<char>& operators);
 
 int main() {
 
-	std::string users_input = "3+3*3";
+	std::string users_input = "3+3*2root49^2";
 
 	// TODO: Validate user input (with regular expressions?, to make sure that there's for instance no such weird sequence like here: "45+-5")
 
-	const std::regex numbers_pattern("[0-9]+");
-	const std::regex operators_pattern("[+-/*]");
+	const std::regex numbers_pattern("([0-9]*[.])?[0-9]+");
+	const std::regex operators_pattern("[+-/*^]|root");
 
 	// group numbers and operators into separate vectors for further processing
 
-	std::vector<int> numbers;
+	std::vector<double> numbers;
 	std::vector<char> operators;
 
 	group(users_input, numbers_pattern, numbers);
 	group(users_input, operators_pattern, operators);
 
+	exponentiation_and_roots(numbers, operators);
 	multiplication_and_division(numbers, operators);
 	addition_and_subtraction(numbers, operators);
 
@@ -52,9 +55,9 @@ void group(std::string input_string, std::regex pattern, std::vector<T>& contain
 		match_str = match.str();
 
 		// if we're processing numbers, then cast the string to int
-		if (std::is_same<T, int>::value) {
-			int number;	
-			number = stoi(match_str);
+		if (std::is_same<T, double>::value) {
+			double number;	
+			number = stod(match_str);
 			container.push_back(number);
 		}
 
@@ -66,12 +69,12 @@ void group(std::string input_string, std::regex pattern, std::vector<T>& contain
 
 }
 
-void addition_and_subtraction(std::vector<int>& numbers, std::vector<char>& operators) {
+void addition_and_subtraction(std::vector<double>& numbers, std::vector<char>& operators) {
 	// TODO: There have to be certain relation between size of those containers (no_numbers = no_operators+1)
 	// otherwise return an error message
 
 	int i = 0;
-	std::vector<int>::iterator numbers_iterator;  // we need those iterators to use vector.erase() function
+	std::vector<double>::iterator numbers_iterator;  // we need those iterators to use vector.erase() function
 	std::vector<char>::iterator operators_iterator;
 
 	while (i < operators.size()) {
@@ -99,12 +102,12 @@ void addition_and_subtraction(std::vector<int>& numbers, std::vector<char>& oper
 	}
 }
 
-void multiplication_and_division(std::vector<int>& numbers, std::vector<char>& operators) {
+void multiplication_and_division(std::vector<double>& numbers, std::vector<char>& operators) {
 	// TODO: There have to be certain relation between size of those containers (no_numbers = no_operators+1)
 	// otherwise return an error message
 
 	int i = 0;
-	std::vector<int>::iterator numbers_iterator;  // we need those iterators to use vector.erase() function
+	std::vector<double>::iterator numbers_iterator;  // we need those iterators to use vector.erase() function
 	std::vector<char>::iterator operators_iterator;
 
 	while (i < operators.size()) {
@@ -124,11 +127,47 @@ void multiplication_and_division(std::vector<int>& numbers, std::vector<char>& o
 			numbers.erase(numbers_iterator);
 			operators_iterator = operators.begin() + i;
 			operators.erase(operators_iterator);
+		} // TODO: allow division with reminder  
+		// if it's not, increment i
+		else { // skip the rest
+			i++;
+		}
+	}
+}
+
+
+void exponentiation_and_roots(std::vector<double>& numbers, std::vector<char>& operators) {
+	// TODO: There have to be certain relation between size of those containers (no_numbers = no_operators+1)
+	// otherwise return an error message
+
+	int i = 0;
+	std::vector<double>::iterator numbers_iterator;  // we need those iterators to use vector.erase() function
+	std::vector<char>::iterator operators_iterator;
+
+	while (i < operators.size()) {
+
+		// if it's the operation that we mean to perform, then take i-th and i+1-th numbers, do calculations,
+		// save result in i-th element, and delete i+1-th, then delete the current operator (don't increment i though...)
+		if (operators[i] == '^') { // exponentiation
+			std::cout << numbers[i];
+			std::cout << numbers[i + 1];
+			double temp = std::pow(numbers[i], numbers[i + 1]);
+			numbers[i] = std::pow(numbers[i], numbers[i + 1]);
+			numbers_iterator = numbers.begin() + i + 1;
+			numbers.erase(numbers_iterator);
+			operators_iterator = operators.begin() + i;
+			operators.erase(operators_iterator);
+		}
+		else if (operators[i] == 'r') { // roots
+			numbers[i] = std::pow(numbers[i + 1], (1.0/numbers[i]) );
+			numbers_iterator = numbers.begin() + i + 1;
+			numbers.erase(numbers_iterator);
+			operators_iterator = operators.begin() + i;
+			operators.erase(operators_iterator);
 		}
 		// if it's not, increment i
 		else { // skip the rest
 			i++;
 		}
-		std::cout << "test";
 	}
 }
