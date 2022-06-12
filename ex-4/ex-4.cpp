@@ -7,21 +7,19 @@
 #include "model.h"
 #include "view.h"
 
-
-
-
-
 int main() {
-
-
 
 	std::vector<task> urgent_and_important{ {false, true, "1st task", time(0)}, {false, true, "2nd task", time(0)}};
 	std::vector<task> not_urgent_and_important{ {false, false, "3rd task", time(0)} };
 	std::vector<task> urgent_and_not_important{ {false, true, "5th task", time(0)}, {false, true, "6th task", time(0)}, {true, false, "9th task", time(0)} };
 	std::vector<task> not_urgent_and_not_important{ };
 
-	//ask_user_for_task(urgent_and_important, not_urgent_and_important,urgent_and_not_important, not_urgent_and_not_important);
+	ask_user_for_task(urgent_and_important, not_urgent_and_important,urgent_and_not_important, not_urgent_and_not_important);
 
+	display_matrix(urgent_and_important, not_urgent_and_important, urgent_and_not_important, not_urgent_and_not_important);
+
+	return 0;
+}
 
 	/*//-------------- code to operate on dates: ----------------------------
 	
@@ -43,9 +41,3 @@ int main() {
 	std::cout << elapsed_time / 60.0 / 60.0 /24.0  << std::endl;
 
 	//---------------------------------------------------------------------*/
-
-	display_matrix(urgent_and_important, not_urgent_and_important, urgent_and_not_important, not_urgent_and_not_important);
-
-	return 0;
-}
-
