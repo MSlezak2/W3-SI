@@ -4,21 +4,25 @@
 #include <vector>
 #include <cstdlib>
 #include <math.h>
+#include <algorithm>
+#include <iterator> 
 
+double calculate(std::vector<double>& numbers, std::vector<char>& operators);
 template<class T>
 void group(std::string input_string, std::regex pattern, std::vector<T>& container);
 void addition_and_subtraction(std::vector<double>& numbers, std::vector<char>& operators);
 void multiplication_and_division(std::vector<double>& numbers, std::vector<char>& operators);
 void exponentiation_and_roots(std::vector<double>& numbers, std::vector<char>& operators);
+int look_for_innermost_parentheses(std::vector<char> operators, int* parentheses_start, int* parentheses_stop);
 
 int main() {
 
-	std::string users_input = "3.5+3.5*2root49^2";
+	std::string users_input = "((3.5+((3.5*2root49)^2)))";
 
 	// TODO: Validate user input (with regular expressions?, to make sure that there's for instance no such weird sequence like here: "45+-5")
 
 	const std::regex numbers_pattern("([0-9]*[.])?[0-9]+");
-	const std::regex operators_pattern("[+\\-/*^]|root");
+	const std::regex operators_pattern("[+\\-/*^()]|root");
 
 	// group numbers and operators into separate vectors for further processing
 
@@ -28,13 +32,74 @@ int main() {
 	group(users_input, numbers_pattern, numbers);
 	group(users_input, operators_pattern, operators);
 
-	exponentiation_and_roots(numbers, operators);
-	multiplication_and_division(numbers, operators);
-	addition_and_subtraction(numbers, operators);
+	double result = calculate(numbers, operators);
 
 	std::cout << users_input << " = " << numbers[0];
 
 	return 0;
+}
+
+double calculate(std::vector<double>& numbers, std::vector<char>& operators) {
+	
+	double result = HUGE_VAL;
+
+	int nesting_level = -1;
+	int parentheses_start, parentheses_stop; // indexes of the first and the last of the innermost parentheses
+
+	while (nesting_level != 0)
+	{
+
+		// look for indexes of inner most parentheses
+		nesting_level = look_for_innermost_parentheses(operators, &parentheses_start, &parentheses_stop);
+
+		// if there are brackets ...
+		if (nesting_level != 0) {
+			// do a copy (subvector) of numbers and operators vectors
+			std::vector<double> inner_numbers;
+			std::vector<char> inner_operators;
+			copy(operators.begin() + parentheses_start + 1, operators.begin() + parentheses_stop, std::back_inserter(inner_operators));
+			copy(numbers.begin() + (parentheses_start - nesting_level + 1), numbers.begin() + (parentheses_stop - nesting_level + 1), std::back_inserter(inner_numbers));
+
+			// recurently invoke this function on those subvectors 
+
+			double result_of_parentheses = calculate(inner_numbers, inner_operators);
+
+			// insert the result where the first element in brackets was
+
+			numbers[(parentheses_start - nesting_level + 1)] = result_of_parentheses;
+
+			// delete the rest of the elements from within the brackets
+
+			std::vector<double>::iterator numbers_iterator;
+			for (int i = parentheses_stop - nesting_level; i > parentheses_start - nesting_level + 1; i--) // it had to be reversed, because when we delete one element, indexes of next elements are being changed
+			{
+				numbers_iterator = numbers.begin() + i;
+				numbers.erase(numbers_iterator);
+			}
+
+			std::vector<char>::iterator operators_iterator;
+			for (int i = parentheses_stop; i >= parentheses_start; i--) // it had to be reversed, because when we delete one element, indexes of next elements are being changed
+			{
+				operators_iterator = operators.begin() + i;
+				operators.erase(operators_iterator);
+			}
+
+		}
+		else 	// ...if not...
+		{
+			// just do the calculations
+			exponentiation_and_roots(numbers, operators);
+			multiplication_and_division(numbers, operators);
+			addition_and_subtraction(numbers, operators);
+		}
+
+	}
+	if (numbers.size() == 1) {
+		result = numbers[0];
+	}
+
+	return result;
+
 }
 
 template<class T>
@@ -169,3 +234,34 @@ void exponentiation_and_roots(std::vector<double>& numbers, std::vector<char>& o
 		}
 	}
 }
+
+int look_for_innermost_parentheses(std::vector<char> operators, int* parentheses_start, int* parentheses_stop) {
+
+	int nesting_level = 0;
+
+	int temp_parentheses_start = 0;
+	int temp_parentheses_stop = -1;
+
+	int i = 0;
+
+	while (i < operators.size() && temp_parentheses_stop == -1)
+	{
+
+		if (operators[i] == '(') {
+			temp_parentheses_start = i;
+			nesting_level++;
+		}
+		else if (operators[i] == ')') {
+			temp_parentheses_stop = i;
+		}
+
+		i++;
+	}
+
+	*parentheses_start = temp_parentheses_start;
+	*parentheses_stop = temp_parentheses_stop;
+
+	return nesting_level;
+
+}
+
