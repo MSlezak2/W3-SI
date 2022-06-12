@@ -13,12 +13,12 @@ void exponentiation_and_roots(std::vector<double>& numbers, std::vector<char>& o
 
 int main() {
 
-	std::string users_input = "3+3*2root49^2";
+	std::string users_input = "3.5+3.5*2root49^2";
 
 	// TODO: Validate user input (with regular expressions?, to make sure that there's for instance no such weird sequence like here: "45+-5")
 
 	const std::regex numbers_pattern("([0-9]*[.])?[0-9]+");
-	const std::regex operators_pattern("[+-/*^]|root");
+	const std::regex operators_pattern("[+\\-/*^]|root");
 
 	// group numbers and operators into separate vectors for further processing
 
@@ -149,8 +149,6 @@ void exponentiation_and_roots(std::vector<double>& numbers, std::vector<char>& o
 		// if it's the operation that we mean to perform, then take i-th and i+1-th numbers, do calculations,
 		// save result in i-th element, and delete i+1-th, then delete the current operator (don't increment i though...)
 		if (operators[i] == '^') { // exponentiation
-			std::cout << numbers[i];
-			std::cout << numbers[i + 1];
 			double temp = std::pow(numbers[i], numbers[i + 1]);
 			numbers[i] = std::pow(numbers[i], numbers[i + 1]);
 			numbers_iterator = numbers.begin() + i + 1;
